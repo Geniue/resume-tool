@@ -41,16 +41,27 @@ export default function App() {
 
   const handleDownload = async () => {
     try {
-      const element = previewRef.current;
-      if (!element) throw new Error("Preview element not found");
+      const original = previewRef.current;
+      if (!original) throw new Error("Preview element not found");
 
-      const canvas = await html2canvas(element, {
+      // Clone and style the preview at full width off-screen
+      const cloned = original.cloneNode(true);
+      cloned.style.position = "absolute";
+      cloned.style.left = "-9999px";
+      cloned.style.top = "0";
+      cloned.style.width = "800px"; // your original desktop width
+      cloned.style.scale = "1";
+      cloned.style.transform = "none";
+      document.body.appendChild(cloned);
+
+      const canvas = await html2canvas(cloned, {
         scale: 2,
         useCORS: true,
       });
 
-      const imgData = canvas.toDataURL("image/png");
+      document.body.removeChild(cloned);
 
+      const imgData = canvas.toDataURL("image/png");
       const pdf = new jsPDF({
         orientation: "portrait",
         unit: "pt",
@@ -59,7 +70,6 @@ export default function App() {
 
       const pageWidth = pdf.internal.pageSize.getWidth();
       const pageHeight = pdf.internal.pageSize.getHeight();
-
       const margin = 20;
       const scaleFactor = Math.min(
         (pageWidth - margin * 2) / canvas.width,
@@ -79,6 +89,7 @@ export default function App() {
       alert("Error generating PDF: " + err.message);
     }
   };
+
 
   const resumeTemplates = {
     default: ResumePreviewDefault,
