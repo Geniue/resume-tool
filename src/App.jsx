@@ -1,3 +1,4 @@
+// ... imports unchanged
 import { useState, useRef } from "react";
 import './ResumeStyles.css';
 
@@ -44,23 +45,21 @@ export default function App() {
       if (!element) throw new Error("Preview element not found");
 
       const canvas = await html2canvas(element, {
-        scale: 2, // Higher for better quality, not size
+        scale: 2,
         useCORS: true,
       });
 
       const imgData = canvas.toDataURL("image/png");
 
-      // Create PDF at standard A4 or Letter size (you can adjust this)
       const pdf = new jsPDF({
         orientation: "portrait",
         unit: "pt",
-        format: "a4", // or [595.28, 841.89] for A4 manually
+        format: "a4",
       });
 
       const pageWidth = pdf.internal.pageSize.getWidth();
       const pageHeight = pdf.internal.pageSize.getHeight();
 
-      // Compute scaled image size to fit the page with margin
       const margin = 20;
       const scaleFactor = Math.min(
         (pageWidth - margin * 2) / canvas.width,
@@ -81,7 +80,6 @@ export default function App() {
     }
   };
 
-
   const resumeTemplates = {
     default: ResumePreviewDefault,
     modern: ResumePreviewModern,
@@ -98,19 +96,19 @@ export default function App() {
   const CoverComponent = coverTemplates[coverTemplate];
 
   return (
-    <div className="min-h-screen bg-gray-100 p-6 font-sans text-gray-800">
+    <div className="min-h-screen bg-gray-100 px-4 py-6 sm:px-6 font-sans text-gray-800 overflow-x-hidden">
       {/* Header */}
-      <div className="max-w-6xl mx-auto bg-white p-4 rounded-xl shadow-md mb-6 flex justify-between items-center">
-        <h1 className="text-2xl font-bold">Resume & Cover Letter Builder</h1>
-        <div>
+      <div className="max-w-6xl mx-auto bg-white p-4 rounded-xl shadow-md mb-6 flex flex-col sm:flex-row justify-between items-center gap-4">
+        <h1 className="text-2xl font-bold text-center sm:text-left">Resume & Cover Letter Builder</h1>
+        <div className="flex space-x-2">
           <button
-            className={`px-4 py-2 mx-1 rounded ${activeTab === "resume" ? "bg-blue-600 text-white" : "bg-gray-200"}`}
+            className={`px-4 py-2 rounded ${activeTab === "resume" ? "bg-blue-600 text-white" : "bg-gray-200"}`}
             onClick={() => setActiveTab("resume")}
           >
             Resume
           </button>
           <button
-            className={`px-4 py-2 mx-1 rounded ${activeTab === "cover" ? "bg-blue-600 text-white" : "bg-gray-200"}`}
+            className={`px-4 py-2 rounded ${activeTab === "cover" ? "bg-blue-600 text-white" : "bg-gray-200"}`}
             onClick={() => setActiveTab("cover")}
           >
             Cover Letter
@@ -119,8 +117,8 @@ export default function App() {
       </div>
 
       {/* Layout */}
-      <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Sidebar: Templates + Form */}
+      <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Sidebar */}
         <div className="bg-white p-6 rounded-xl shadow-lg">
           <h2 className="text-lg font-semibold mb-4">
             {activeTab === "resume" ? "Resume Details" : "Cover Letter Details"}
@@ -131,64 +129,44 @@ export default function App() {
             <h3 className="font-semibold mb-2">
               {activeTab === "resume" ? "Choose Resume Template" : "Choose Cover Letter Template"}
             </h3>
-
-            {/* Resume */}
-            {activeTab === "resume" && (
-              <div className="grid grid-cols-3 gap-4">
-                {["default", "modern", "minimal"].map((template) => (
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+              {(activeTab === "resume" ? ["default", "modern", "minimal"] : ["default", "corporate", "creative"]).map(
+                (template) => (
                   <button
                     key={template}
-                    onClick={() => setResumeTemplate(template)}
-                    className={`border rounded-lg p-4 text-center transition-all ${
-                      resumeTemplate === template ? "border-blue-600 ring-2 ring-blue-300 bg-blue-50" : "border-gray-300"
+                    onClick={() =>
+                      activeTab === "resume" ? setResumeTemplate(template) : setCoverTemplate(template)
+                    }
+                    className={`border rounded-lg p-2 text-center transition-all ${
+                      (activeTab === "resume" ? resumeTemplate : coverTemplate) === template
+                        ? "border-blue-600 ring-2 ring-blue-300 bg-blue-50"
+                        : "border-gray-300"
                     }`}
                   >
                     <div className="font-medium text-sm mb-1 capitalize">{template}</div>
-                    <div className="w-28 h-36 overflow-hidden border rounded">
-                      <iframe
-                        src={`/preview/resume/${template}.html`}
-                        title={`Resume preview ${template}`}
-                        className="w-[300px] h-[390px] scale-[0.37] origin-top-left pointer-events-none"
-                      />
+                    <div className="relative w-full aspect-[3/4] overflow-hidden border rounded bg-white">
+                      <div className="absolute top-0 left-0 w-full h-full scale-[0.28] origin-top-left pointer-events-none">
+                        <iframe
+                          src={`/preview/${activeTab}/${template}.html`}
+                          title={`${activeTab} preview ${template}`}
+                          className="w-[800px] h-[1000px] border-0"
+                        />
+                      </div>
                     </div>
                   </button>
-                ))}
-              </div>
-            )}
-
-            {/* Cover */}
-            {activeTab === "cover" && (
-              <div className="grid grid-cols-3 gap-4">
-                {["default", "corporate", "creative"].map((template) => (
-                  <button
-                    key={template}
-                    onClick={() => setCoverTemplate(template)}
-                    className={`border rounded-lg p-4 text-center transition-all ${
-                      coverTemplate === template ? "border-blue-600 ring-2 ring-blue-300 bg-blue-50" : "border-gray-300"
-                    }`}
-                  >
-                    <div className="font-medium text-sm mb-1 capitalize">{template}</div>
-                    <div className="w-28 h-36 overflow-hidden border rounded">
-                      <iframe
-                        src={`/preview/cover/${template}.html`}
-                        title={`Cover preview ${template}`}
-                        className="w-[300px] h-[390px] scale-[0.37] origin-top-left pointer-events-none"
-                      />
-                    </div>
-                  </button>
-                ))}
-              </div>
-            )}
+                )
+              )}
+            </div>
           </div>
 
-          {/* Input Forms */}
+          {/* Inputs */}
           {(activeTab === "resume" ? resumeData : coverData) &&
             Object.entries(activeTab === "resume" ? resumeData : coverData).map(([key, value]) => (
               <div key={key} className="mb-3">
                 <label className="block text-sm font-medium mb-1 capitalize">
                   {key.replace(/([A-Z])/g, " $1").trim()}
                 </label>
-                {key === "message" || ["summary", "experience", "education"].includes(key) ? (
+                {["summary", "experience", "education", "message"].includes(key) ? (
                   <textarea
                     className="w-full border border-gray-300 rounded px-3 py-2 focus:ring-2 focus:ring-blue-500 min-h-[100px]"
                     value={value}
@@ -220,44 +198,49 @@ export default function App() {
           </button>
         </div>
 
-        {/* Preview */}
-        <div className="bg-gray-50 p-6 rounded-xl shadow-lg overflow-auto">
-          <h2 className="text-lg font-semibold mb-4">Preview</h2>
-          <div ref={previewRef}>
-            {activeTab === "resume" ? (
-              <ResumeComponent data={resumeData} />
-            ) : (
-              <CoverComponent data={coverData} />
-            )}
-          </div>
-        </div>
-        
-
-        
-      </div>
-      {/* Donation Section */}
-      <div className="max-w-6xl mx-auto mt-10 text-center">
-        <h2 className="text-lg font-semibold mb-4">ادعمني لدعم استمرار الأداة ❤️</h2>
-        <div className="flex flex-col md:flex-row justify-center items-center gap-4">
-          {/* Vodafone Cash Button */}
-          <div className="bg-white p-4 rounded-xl shadow-md border border-gray-200">
-            <p className="mb-2 text-sm text-gray-700">📱 دعم عبر فودافون كاش</p>
-            <p className="font-semibold text-lg text-red-600">01017910660</p>
-            <p className="text-xs text-gray-500 mt-1">أي مبلغ صغير يساعد، حتى ٥ جنيه 🙏</p>
+        {/* Preview + Donations */}
+        <div className="bg-gray-50 p-6 rounded-xl shadow-lg overflow-hidden">
+          <h2 className="text-lg font-semibold mb-4 text-center">Preview</h2>
+          <div className="w-full overflow-hidden">
+            <div className="relative w-full overflow-auto">
+              <div
+                className="mx-auto origin-top transform scale-[0.28] sm:scale-[0.4] md:scale-[0.5] lg:scale-[0.75] xl:scale-100"
+                style={{ width: "800px" }}
+                ref={previewRef}
+              >
+                {activeTab === "resume" ? (
+                  <ResumeComponent data={resumeData} />
+                ) : (
+                  <CoverComponent data={coverData} />
+                )}
+              </div>
+            </div>
           </div>
 
-          {/* Buy Me a Coffee Button */}
-          <a
-            href="https://www.buymeacoffee.com/mostafahana" // عدل هذا بالرابط الخاص بك
-            target="_blank"
-            rel="noopener noreferrer"
-            className="bg-yellow-400 hover:bg-yellow-500 text-black font-semibold px-6 py-3 rounded-xl shadow-md transition duration-300"
-          >
-            ☕ Buy Me a Coffee
-          </a>
+          {/* Donate Section */}
+          <div className="mt-10 w-full text-center">
+            <p className="mb-2 text-sm text-gray-600 font-medium">
+              If you like the tool and want to support scaling it ❤️
+            </p>
+            <div className="flex flex-col sm:flex-row justify-center items-center gap-4">
+              <div className="flex flex-col items-center gap-1">
+                <span className="text-gray-700 font-semibold">Vodafone Cash</span>
+                <span className="text-gray-800">01017910660</span>
+              </div>
+              <a
+                href="https://www.buymeacoffee.com/mostafahana"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="bg-yellow-400 hover:bg-yellow-500 text-black font-bold py-2 px-4 rounded transition"
+              >
+                ☕ Buy Me a Coffee
+              </a>
+            </div>
+            <p className="text-xs mt-3 text-gray-500">Even 5 EGP or 50 cents helps 💙</p>
+          </div>
         </div>
-      </div>
 
+      </div>
     </div>
   );
 }
