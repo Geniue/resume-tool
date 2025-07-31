@@ -1,0 +1,82 @@
+/* Replace this in your ResumeStyles.css */
+@page {
+  size: letter;
+  margin: 0;
+}
+
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  #resumePreview, #coverPreview, #resumePreview *, #coverPreview * {
+    visibility: visible;
+  }
+  #resumePreview, #coverPreview {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 8.5in;
+    height: 11in;
+    margin: 0;
+    padding: 0;
+    box-shadow: none;
+  }
+  
+  /* Force standard color formats */
+  .bg-blue-700 {
+    background-color: #1d4ed8 !important;
+  }
+  .text-blue-700 {
+    color: #1d4ed8 !important;
+  }
+}
+
+/* Force standard RGB colors for PDF generation */
+.bg-blue-700 {
+  background-color: rgb(29, 78, 216) !important;
+}
+
+.text-blue-700 {
+  color: rgb(29, 78, 216) !important;
+}
+
+/* Print-specific styles */
+@media print {
+  .bg-blue-700 {
+    background-color: rgb(29, 78, 216) !important;
+  }
+  .text-blue-700 {
+    color: rgb(29, 78, 216) !important;
+  }
+}
+
+
+/* Force RGB colors for all Tailwind bg/text classes used in PDF */
+.bg-white {
+  background-color: rgb(255, 255, 255) !important;
+}
+.bg-gray-100 {
+  background-color: rgb(243, 244, 246) !important;
+}
+.text-gray-800 {
+  color: rgb(31, 41, 55) !important;
+}
+.text-white {
+  color: rgb(255, 255, 255) !important;
+}
+
+
+
+/* For Template 2 or 3 */
+.text-blue-700 {
+  color: rgb(29, 78, 216) !important;
+}
+.bg-blue-700 {
+  background-color: rgb(29, 78, 216) !important;
+}
+.text-gray-700 {
+  color: rgb(55, 65, 81) !important;
+}
+.bg-gray-100 {
+  background-color: rgb(243, 244, 246) !important;
+}

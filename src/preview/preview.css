@@ -1,0 +1,10 @@
+/* src/preview/preview.css */
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Import your actual styles */
+@import '../index.css';
+@import '../App.css';
+@import '../ResumeStyles.css';
