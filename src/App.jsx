@@ -231,7 +231,33 @@ export default function App() {
             )}
           </div>
         </div>
+        
+
+        
       </div>
+      {/* Donation Section */}
+      <div className="max-w-6xl mx-auto mt-10 text-center">
+        <h2 className="text-lg font-semibold mb-4">ادعمني لدعم استمرار الأداة ❤️</h2>
+        <div className="flex flex-col md:flex-row justify-center items-center gap-4">
+          {/* Vodafone Cash Button */}
+          <div className="bg-white p-4 rounded-xl shadow-md border border-gray-200">
+            <p className="mb-2 text-sm text-gray-700">📱 دعم عبر فودافون كاش</p>
+            <p className="font-semibold text-lg text-red-600">01017910660</p>
+            <p className="text-xs text-gray-500 mt-1">أي مبلغ صغير يساعد، حتى ٥ جنيه 🙏</p>
+          </div>
+
+          {/* Buy Me a Coffee Button */}
+          <a
+            href="https://www.buymeacoffee.com/mostafahana" // عدل هذا بالرابط الخاص بك
+            target="_blank"
+            rel="noopener noreferrer"
+            className="bg-yellow-400 hover:bg-yellow-500 text-black font-semibold px-6 py-3 rounded-xl shadow-md transition duration-300"
+          >
+            ☕ Buy Me a Coffee
+          </a>
+        </div>
+      </div>
+
     </div>
   );
 }
