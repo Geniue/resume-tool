@@ -10,6 +10,8 @@ import CoverPreviewDefault from "./components/cover/CoverPreviewDefault";
 import CoverPreviewCorporate from "./components/cover/CoverPreviewCorporate";
 import CoverPreviewCreative from "./components/cover/CoverPreviewCreative";
 
+import ATSChecker from "./components/ATSChecker"; // Add this import
+
 import { jsPDF } from "jspdf";
 import html2canvas from "html2canvas";
 
@@ -38,6 +40,9 @@ export default function App() {
     company: "Innovative Tech Solutions",
     message: "I'm excited to apply for this position because...",
   });
+
+  // Add state for ATS analysis text
+  const [atsText, setAtsText] = useState("");
 
   const handleDownload = async () => {
     try {
@@ -90,6 +95,11 @@ export default function App() {
     }
   };
 
+  // Function to auto-populate ATS text from current resume
+  const useCurrentResume = () => {
+    const fullResumeText = `${resumeData.name}\n${resumeData.title}\n${resumeData.email}\n${resumeData.phone}\n${resumeData.address}\n\nSUMMARY\n${resumeData.summary}\n\nEXPERIENCE\n${resumeData.experience}\n\nEDUCATION\n${resumeData.education}\n\nSKILLS\n${resumeData.skills}`;
+    setAtsText(fullResumeText);
+  };
 
   const resumeTemplates = {
     default: ResumePreviewDefault,
@@ -124,134 +134,169 @@ export default function App() {
           >
             Cover Letter
           </button>
-        </div>
-      </div>
-
-      {/* Layout */}
-      <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Sidebar */}
-        <div className="bg-white p-6 rounded-xl shadow-lg">
-          <h2 className="text-lg font-semibold mb-4">
-            {activeTab === "resume" ? "Resume Details" : "Cover Letter Details"}
-          </h2>
-
-          {/* Template Selector */}
-          <div className="mb-6">
-            <h3 className="font-semibold mb-2">
-              {activeTab === "resume" ? "Choose Resume Template" : "Choose Cover Letter Template"}
-            </h3>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-              {(activeTab === "resume" ? ["default", "modern", "minimal"] : ["default", "corporate", "creative"]).map(
-                (template) => (
-                  <button
-                    key={template}
-                    onClick={() =>
-                      activeTab === "resume" ? setResumeTemplate(template) : setCoverTemplate(template)
-                    }
-                    className={`border rounded-lg p-2 text-center transition-all ${
-                      (activeTab === "resume" ? resumeTemplate : coverTemplate) === template
-                        ? "border-blue-600 ring-2 ring-blue-300 bg-blue-50"
-                        : "border-gray-300"
-                    }`}
-                  >
-                    <div className="font-medium text-sm mb-1 capitalize">{template}</div>
-                    <div className="relative w-full aspect-[3/4] overflow-hidden border rounded bg-white">
-                      <div className="absolute top-0 left-0 w-full h-full scale-[0.28] origin-top-left pointer-events-none">
-                        <iframe
-                          src={`/preview/${activeTab}/${template}.html`}
-                          title={`${activeTab} preview ${template}`}
-                          className="w-[800px] h-[1000px] border-0"
-                        />
-                      </div>
-                    </div>
-                  </button>
-                )
-              )}
-            </div>
-          </div>
-
-          {/* Inputs */}
-          {(activeTab === "resume" ? resumeData : coverData) &&
-            Object.entries(activeTab === "resume" ? resumeData : coverData).map(([key, value]) => (
-              <div key={key} className="mb-3">
-                <label className="block text-sm font-medium mb-1 capitalize">
-                  {key.replace(/([A-Z])/g, " $1").trim()}
-                </label>
-                {["summary", "experience", "education", "message"].includes(key) ? (
-                  <textarea
-                    className="w-full border border-gray-300 rounded px-3 py-2 focus:ring-2 focus:ring-blue-500 min-h-[100px]"
-                    value={value}
-                    onChange={(e) =>
-                      activeTab === "resume"
-                        ? setResumeData({ ...resumeData, [key]: e.target.value })
-                        : setCoverData({ ...coverData, [key]: e.target.value })
-                    }
-                  />
-                ) : (
-                  <input
-                    className="w-full border border-gray-300 rounded px-3 py-2 focus:ring-2 focus:ring-blue-500"
-                    value={value}
-                    onChange={(e) =>
-                      activeTab === "resume"
-                        ? setResumeData({ ...resumeData, [key]: e.target.value })
-                        : setCoverData({ ...coverData, [key]: e.target.value })
-                    }
-                  />
-                )}
-              </div>
-            ))}
-
           <button
-            onClick={handleDownload}
-            className="w-full mt-4 bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition"
+            className={`px-4 py-2 rounded ${activeTab === "ats" ? "bg-blue-600 text-white" : "bg-gray-200"}`}
+            onClick={() => setActiveTab("ats")}
           >
-            Download {activeTab === "resume" ? "Resume" : "Cover Letter"}
+            ATS Checker
           </button>
         </div>
+      </div>
 
-        {/* Preview + Donations */}
-        <div className="bg-gray-50 p-6 rounded-xl shadow-lg overflow-hidden">
-          <h2 className="text-lg font-semibold mb-4 text-center">Preview</h2>
-          <div className="w-full overflow-hidden">
-            <div className="relative w-full overflow-auto">
-              <div
-                className="mx-auto origin-top transform scale-[0.28] sm:scale-[0.4] md:scale-[0.5] lg:scale-[0.75] xl:scale-100"
-                style={{ width: "800px" }}
-                ref={previewRef}
+      {/* ATS Checker Full Width Layout */}
+      {activeTab === "ats" && (
+        <div className="max-w-6xl mx-auto">
+          <div className="bg-white p-6 rounded-xl shadow-lg mb-6">
+            <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-end">
+              <div className="flex-1">
+                <label className="block text-sm font-medium mb-2">
+                  Paste your resume text here for ATS analysis
+                </label>
+                <textarea
+                  className="w-full border border-gray-300 rounded px-3 py-2 focus:ring-2 focus:ring-blue-500 min-h-[120px]"
+                  placeholder="Copy and paste your resume text here..."
+                  value={atsText}
+                  onChange={(e) => setAtsText(e.target.value)}
+                />
+              </div>
+              <button
+                onClick={useCurrentResume}
+                className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition whitespace-nowrap"
               >
-                {activeTab === "resume" ? (
-                  <ResumeComponent data={resumeData} />
-                ) : (
-                  <CoverComponent data={coverData} />
+                Use Current Resume
+              </button>
+            </div>
+          </div>
+          <ATSChecker resumeText={atsText} />
+        </div>
+      )}
+
+      {/* Original Resume/Cover Letter Layout */}
+      {activeTab !== "ats" && (
+        <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Sidebar */}
+          <div className="bg-white p-6 rounded-xl shadow-lg">
+            <h2 className="text-lg font-semibold mb-4">
+              {activeTab === "resume" ? "Resume Details" : "Cover Letter Details"}
+            </h2>
+
+            {/* Template Selector */}
+            <div className="mb-6">
+              <h3 className="font-semibold mb-2">
+                {activeTab === "resume" ? "Choose Resume Template" : "Choose Cover Letter Template"}
+              </h3>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                {(activeTab === "resume" ? ["default", "modern", "minimal"] : ["default", "corporate", "creative"]).map(
+                  (template) => (
+                    <button
+                      key={template}
+                      onClick={() =>
+                        activeTab === "resume" ? setResumeTemplate(template) : setCoverTemplate(template)
+                      }
+                      className={`border rounded-lg p-2 text-center transition-all ${
+                        (activeTab === "resume" ? resumeTemplate : coverTemplate) === template
+                          ? "border-blue-600 ring-2 ring-blue-300 bg-blue-50"
+                          : "border-gray-300"
+                      }`}
+                    >
+                      <div className="font-medium text-sm mb-1 capitalize">{template}</div>
+                      <div className="relative w-full aspect-[3/4] overflow-hidden border rounded bg-white">
+                        <div className="absolute top-0 left-0 w-full h-full scale-[0.28] origin-top-left pointer-events-none">
+                          <iframe
+                            src={`/preview/${activeTab}/${template}.html`}
+                            title={`${activeTab} preview ${template}`}
+                            className="w-[800px] h-[1000px] border-0"
+                          />
+                        </div>
+                      </div>
+                    </button>
+                  )
                 )}
               </div>
             </div>
+
+            {/* Inputs */}
+            {(activeTab === "resume" ? resumeData : coverData) &&
+              Object.entries(activeTab === "resume" ? resumeData : coverData).map(([key, value]) => (
+                <div key={key} className="mb-3">
+                  <label className="block text-sm font-medium mb-1 capitalize">
+                    {key.replace(/([A-Z])/g, " $1").trim()}
+                  </label>
+                  {["summary", "experience", "education", "message"].includes(key) ? (
+                    <textarea
+                      className="w-full border border-gray-300 rounded px-3 py-2 focus:ring-2 focus:ring-blue-500 min-h-[100px]"
+                      value={value}
+                      onChange={(e) =>
+                        activeTab === "resume"
+                          ? setResumeData({ ...resumeData, [key]: e.target.value })
+                          : setCoverData({ ...coverData, [key]: e.target.value })
+                      }
+                    />
+                  ) : (
+                    <input
+                      className="w-full border border-gray-300 rounded px-3 py-2 focus:ring-2 focus:ring-blue-500"
+                      value={value}
+                      onChange={(e) =>
+                        activeTab === "resume"
+                          ? setResumeData({ ...resumeData, [key]: e.target.value })
+                          : setCoverData({ ...coverData, [key]: e.target.value })
+                      }
+                    />
+                  )}
+                </div>
+              ))}
+
+            <button
+              onClick={handleDownload}
+              className="w-full mt-4 bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition"
+            >
+              Download {activeTab === "resume" ? "Resume" : "Cover Letter"}
+            </button>
           </div>
 
-          {/* Donate Section */}
-          <div className="mt-10 w-full text-center">
-            <p className="mb-2 text-sm text-gray-600 font-medium">
-              If you like the tool and want to support scaling it ❤️
-            </p>
-            <div className="flex flex-col sm:flex-row justify-center items-center gap-4">
-              <div className="flex flex-col items-center gap-1">
-                <span className="text-gray-700 font-semibold">Vodafone Cash</span>
-                <span className="text-gray-800">01017910660</span>
+          {/* Preview + Donations */}
+          <div className="bg-gray-50 p-6 rounded-xl shadow-lg overflow-hidden">
+            <h2 className="text-lg font-semibold mb-4 text-center">Preview</h2>
+            <div className="w-full overflow-hidden">
+              <div className="relative w-full overflow-auto">
+                <div
+                  className="mx-auto origin-top transform scale-[0.28] sm:scale-[0.4] md:scale-[0.5] lg:scale-[0.75] xl:scale-100"
+                  style={{ width: "800px" }}
+                  ref={previewRef}
+                >
+                  {activeTab === "resume" ? (
+                    <ResumeComponent data={resumeData} />
+                  ) : (
+                    <CoverComponent data={coverData} />
+                  )}
+                </div>
               </div>
-              <a
-                href="https://www.buymeacoffee.com/mostafahana"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="bg-yellow-400 hover:bg-yellow-500 text-black font-bold py-2 px-4 rounded transition"
-              >
-                ☕ Buy Me a Coffee
-              </a>
             </div>
-            <p className="text-xs mt-3 text-gray-500">Even 5 EGP or 50 cents helps 💙</p>
+
+            {/* Donate Section */}
+            <div className="mt-10 w-full text-center">
+              <p className="mb-2 text-sm text-gray-600 font-medium">
+                If you like the tool and want to support scaling it ❤️
+              </p>
+              <div className="flex flex-col sm:flex-row justify-center items-center gap-4">
+                <div className="flex flex-col items-center gap-1">
+                  <span className="text-gray-700 font-semibold">Vodafone Cash</span>
+                  <span className="text-gray-800">01017910660</span>
+                </div>
+                <a
+                  href="https://www.buymeacoffee.com/mostafahana"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="bg-yellow-400 hover:bg-yellow-500 text-black font-bold py-2 px-4 rounded transition"
+                >
+                  ☕ Buy Me a Coffee
+                </a>
+              </div>
+              <p className="text-xs mt-3 text-gray-500">Even 5 EGP or 50 cents helps 💙</p>
+            </div>
           </div>
         </div>
-
-      </div>
+      )}
     </div>
   );
 }
